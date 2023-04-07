@@ -1,11 +1,5 @@
 <template>
-  <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
     <router-view/>
-  </div>
 </template>
 
 <style lang="scss">
@@ -29,4 +23,24 @@
     }
   }
 }
+* {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-decoration: none;
+}
+html,
+body,
+#app {
+  height: 100%;
+  width: 100%;
+  /* min-width: 1200px;
+  min-width: 1920px;
+  min-height: 900px; */
+  min-width: 1440px;
+  font-size: 16px;
+  background:#f4f5f7 ;
+  overflow: auto;
+}
+
 </style>
