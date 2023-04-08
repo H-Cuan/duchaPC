@@ -86,6 +86,12 @@ export default {
 </script>
 
 <style scoped>
+html{
+  height: 100%;
+}
+body{
+  height: 100%;
+}
 .menu{
   background:#fff;
   width: 200px;

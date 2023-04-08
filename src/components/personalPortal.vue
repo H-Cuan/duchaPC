@@ -63,16 +63,39 @@
 </div>
 </template>
 <script>
+import axios from 'axios'
+
 export default {
   name: 'personalPortal',
   data () {
     return {
+      accessToken: window.localStorage.getItem('access_token'),
+      Token: window.localStorage.getItem('Token'),
       value: new Date(),
-      photo: 'https://ts1.cn.mm.bing.net/th/id/R-C.5ec40427162ff0d0a63c212b8b45dd09?rik=lxt9NS4y%2bF9P9Q&riu=http%3a%2f%2fg.hiphotos.baidu.com%2fzhidao%2fpic%2fitem%2ffd039245d688d43ff153fc7b7c1ed21b0ff43b44.jpg&ehk=04p5MxoUGM97XlEUobKZCjRWjmnHv2mFyKRxmB05560%3d&risl=&pid=ImgRaw&r=0',
-      name: '张三',
+      photo: '',
+      name: '',
       position: '刑警',
       unit: '廊坊市公安局',
-      department: '督察部'
+      department: ''
+    }
+  },
+  mounted () {
+    this.getUserInfo()
+  },
+  methods: {
+    async getUserInfo () {
+      await axios.get('/auth/system/getInfo', {
+        headers: {
+          Authorization: `Bearer ${this.Token}`,
+          'x-api-header': 'yuanxibing',
+          'x-access-token': this.accessToken
+        }
+      }).then(res => {
+        this.department = res.data.data.dept.name
+        this.name = res.data.data.dept.leader
+        this.photo = res.data.data.user.avatar
+        console.log(res)
+      })
     }
   }
 }

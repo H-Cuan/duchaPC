@@ -107,7 +107,7 @@
             <el-table-column prop="created_at" label="日期"> </el-table-column>
             <el-table-column prop="" label="操作">
               <template slot-scope="scope">
-              <el-button type="text">编辑</el-button>
+              <el-button type="text" @click="edit(scope.row)">编辑</el-button>
               <el-button type="text" @click="delDialog(scope.row)" style="color: red">删除</el-button>
               </template>
             </el-table-column>
@@ -154,7 +154,7 @@
           <el-input
             class="inline-input"
             v-model="addInput.device_name"
-            placeholder="请输入设备型号"
+            placeholder="请输入设备名称"
             style="width: 200px"
           ></el-input></div>
         <div style="margin:30px 0 0 27.8em"> 状态：
@@ -294,6 +294,18 @@ export default {
         console.log(this.appList)
       })
     },
+    // 编辑
+    async edit (e) {
+      console.log(e)
+      await axios.put('/auth/supervise/device/index', {
+      }, {
+        headers: {
+          Authorization: `Bearer ${this.Token}`,
+          'x-api-header': 'yuanxibing',
+          'x-access-token': this.accessToken
+        }
+      })
+    },
     // 添加
     async appDevice () {
       const accessToken = window.localStorage.getItem('access_token')
@@ -311,6 +323,12 @@ export default {
             message: '添加成功',
             type: 'success'
           })
+          this.addInput = {
+            status: '0',
+            dept_id: '28338940880032',
+            page: 1,
+            pageSize: 20
+          }
           this.getContact()
         } else {
           this.$message({
