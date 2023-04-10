@@ -5,31 +5,30 @@
       <div style="display: flex;margin: 30px 0 0 20px">
         <div style="margin-left:100px">
           督察类别：
-          <el-select v-model="value" clearable placeholder="请选择督察类别">
+          <el-select v-model="searchList.super_type" clearable placeholder="请选择督察类别">
             <el-option
-              v-for="item in qoptions"
-              :key="item.value1"
-              :label="item.label1"
-              :value="item.value1">
+              v-for="item in options"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
             </el-option>
           </el-select>
         </div>
         <div style="margin-left:100px">
           督察内容：
-          <el-autocomplete
-            class="inline-input"
-            v-model="state"
-
+          <el-input
+           style="width: 220px"
+            v-model="searchList.super_content"
             placeholder="请输入督察内容"
-            :trigger-on-focus="false"
 
-          ></el-autocomplete>
+          ></el-input>
         </div>
         <div style="margin-left:100px">
           创建时间：
           <el-date-picker
-            v-model="value1"
+            v-model="searchList.created_at"
             type="date"
+            value-format="yyyy-MM-dd"
             placeholder="选择创建时间">
           </el-date-picker>
         </div>
@@ -142,6 +141,11 @@ export default {
           label: '巡防执勤'
         }
       ],
+      searchList: {
+        super_type: '',
+        super_content: '',
+        created_at: ''
+      },
       delDialogVisible: false,
       accessToken: window.localStorage.getItem('access_token'),
       Token: window.localStorage.getItem('Token'),
@@ -179,11 +183,45 @@ export default {
     this.time = _this.gettime
   },
   methods: {
-    appQuery () {
-
+    // 查询
+    async appQuery () {
+      const accessToken = window.localStorage.getItem('access_token')
+      const Token = window.localStorage.getItem('Token')
+      const type = await axios.get('/auth/system/dataDict/list', {
+        params: {
+          code: 'supervise_type'
+        },
+        headers: {
+          Authorization: `Bearer ${Token}`,
+          'x-api-header': 'yuanxibing',
+          'x-access-token': accessToken
+        }
+      })
+      await axios.get('/auth/supervise/content/index', {
+        params: this.searchList,
+        headers: {
+          Authorization: `Bearer ${Token}`,
+          'x-api-header': 'yuanxibing',
+          'x-access-token': accessToken
+        }
+      }).then(res => {
+        console.log(res)
+        res.data.data.items.map(i => {
+          if (i.super_type === '1') {
+            i.super_type = type.data.data[0].label
+          }
+          if (i.super_type === '2') {
+            i.super_type = type.data.data[1].label
+          }
+        })
+        console.log(res.data.data.items)
+        this.appTotal = res.data.data.items.length
+        this.superviseList = res.data.data.items
+      })
     },
     refresh () {
-
+      this.getSuperviseList()
+      this.searchList = {}
     },
     // 表格样式
     tableRowStyle ({ row, rowIndex }) {

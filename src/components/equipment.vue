@@ -5,29 +5,23 @@
       <div style="display: flex;margin: 30px 0 0 20px">
         <div>
           设备型号：
-          <el-autocomplete
-            class="inline-input"
-            v-model="state"
-            :fetch-suggestions="querySearch"
+          <el-input
+            style="width: 220px"
+            v-model="search.device_no"
             placeholder="请输入设备型号"
-            :trigger-on-focus="false"
-            @select="handleSelect"
-          ></el-autocomplete>
+          ></el-input>
         </div>
         <div style="margin-left:130px">
           设备品牌：
-          <el-autocomplete
-            class="inline-input"
-            v-model="state"
-
+          <el-input
+            style="width: 220px"
+            v-model="search.device_band"
             placeholder="请输入设备品牌"
-            :trigger-on-focus="false"
-
-          ></el-autocomplete>
+          ></el-input>
         </div>
         <div style="margin-left:130px">
           状态：
-          <el-select v-model="value2" clearable placeholder="请选择状态">
+          <el-select v-model="search.status" clearable placeholder="请选择状态">
             <el-option
               v-for="item in options"
               :key="item.value"
@@ -40,11 +34,8 @@
           设备唯一标识：
           <el-autocomplete
             class="inline-input"
-            v-model="state"
-            :fetch-suggestions="querySearch"
+            v-model="search.device_code"
             placeholder="请输入设备唯一标识"
-            :trigger-on-focus="false"
-            @select="handleSelect"
           ></el-autocomplete>
         </div>
       </div>
@@ -56,7 +47,12 @@
     <div class="footer">
       <div style="margin-left: 20px;padding-top: 15px">
         <div style="margin-bottom: 15px">
-          <el-button @click="dialogVisible=true" style="background: #5086ff;color: #fff;border-radius: 10px"><i class="el-icon-plus"></i> 添加设备</el-button>
+          <el-button @click="dialogVisible=true,  addInput= {
+        dept_id: '28338940880032',
+        page: 1,
+        status:1,
+        pageSize: 20
+      }, title = '添加设备'" style="background: #5086ff;color: #fff;border-radius: 10px"><i class="el-icon-plus"></i> 添加设备</el-button>
           <el-button @click="delIndexDialog()" :disabled="disabled" style="background: red;color: #fff;border-radius: 10px"><i class="el-icon-delete"></i> 删除</el-button>
         </div>
         <div>
@@ -125,7 +121,7 @@
         </div></div>
     </div>
     <el-dialog
-      title="添加设备"
+      :title= 'title'
       :visible.sync="dialogVisible"
       width="40%"
       :before-close="handleClose">
@@ -207,6 +203,16 @@ import axios from 'axios'
 export default {
   data () {
     return {
+      options: [{
+        value: '0',
+        label: '停用'
+      }, {
+        value: '1',
+        label: '启用'
+      }],
+      search: {},
+      row_id: '',
+      title: '',
       disabled: true,
       id: '',
       multipleSelection: {
@@ -242,7 +248,25 @@ export default {
   methods: {
     // 状态 开启 关闭
     change (row) {
+      console.log(row)
       row.status === 1 ? row.status = 0 : row.status = 1
+      axios.put('/auth/supervise/device/update/' + row.id, {
+        dept_id: row.dept_id,
+        device_name: row.device_name,
+        created_at: row.created_at,
+        device_code: row.device_code,
+        device_band: row.device_band,
+        device_no: row.device_no,
+        status: row.status
+      }, {
+        headers: {
+          Authorization: `Bearer ${this.Token}`,
+          'x-api-header': 'yuanxibing',
+          'x-access-token': this.accessToken
+        }
+      }).then(res => {
+        console.log(res)
+      })
     },
     changeListType (e) {
       e.visible = true
@@ -259,11 +283,21 @@ export default {
         })
         .catch(_ => {})
     },
-    appQuery () {
-
+    async appQuery () {
+      await axios.get('/auth/supervise/device/index', {
+        params: this.search,
+        headers: {
+          Authorization: `Bearer ${this.Token}`,
+          'x-api-header': 'yuanxibing',
+          'x-access-token': this.accessToken
+        }
+      }).then(res => {
+        this.appList = res.data.data.items
+      })
     },
     // 重置
     refresh () {
+      this.search = {}
       this.getContact()
     },
     // 表格样式
@@ -295,49 +329,56 @@ export default {
       })
     },
     // 编辑
-    async edit (e) {
+    edit (e) {
       console.log(e)
-      await axios.put('/auth/supervise/device/index', {
-      }, {
-        headers: {
-          Authorization: `Bearer ${this.Token}`,
-          'x-api-header': 'yuanxibing',
-          'x-access-token': this.accessToken
-        }
-      })
+      this.addInput = e
+      this.row_id = e.id
+      this.title = '编辑设备'
+      this.dialogVisible = true
     },
-    // 添加
+    // 添加 或 编辑
     async appDevice () {
       const accessToken = window.localStorage.getItem('access_token')
       const Token = window.localStorage.getItem('Token')
-      await axios.post('auth/supervise/device/save', this.addInput, {
-        headers: {
-          Authorization: `Bearer ${Token}`,
-          'x-api-header': 'yuanxibing',
-          'x-access-token': accessToken
-        }
-      }).then(res => {
-        console.log(res)
-        if (res.data.code === 200) {
-          this.$message({
-            message: '添加成功',
-            type: 'success'
-          })
-          this.addInput = {
-            status: '0',
-            dept_id: '28338940880032',
-            page: 1,
-            pageSize: 20
+      if (this.title === '添加设备') {
+        await axios.post('auth/supervise/device/save', this.addInput, {
+          headers: {
+            Authorization: `Bearer ${Token}`,
+            'x-api-header': 'yuanxibing',
+            'x-access-token': accessToken
           }
-          this.getContact()
-        } else {
-          this.$message({
-            message: res.data.message,
-            type: 'warning'
-          })
-          this.getContact()
-        }
-      })
+        }).then(res => {
+          console.log(res)
+          if (res.data.code === 200) {
+            this.$message({
+              message: '添加成功',
+              type: 'success'
+            })
+            this.addInput = {
+              status: '0',
+              dept_id: '28338940880032',
+              page: 1,
+              pageSize: 20
+            }
+            this.getContact()
+          } else {
+            this.$message({
+              message: res.data.message,
+              type: 'warning'
+            })
+            this.getContact()
+          }
+        })
+      }
+      if (this.title === '编辑设备') {
+        await axios.put('/auth/supervise/device/update/' + this.row_id, this.addInput, {
+          headers: {
+            Authorization: `Bearer ${this.Token}`,
+            'x-api-header': 'yuanxibing',
+            'x-access-token': this.accessToken
+          }
+        })
+      }
     },
     // 删除
     handleSelectionChange (val) {

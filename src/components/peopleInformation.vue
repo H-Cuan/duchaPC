@@ -46,7 +46,7 @@
         </div>
         <div>
           <el-table
-            :data="appList"
+            :data="peopleList"
             border
             style="border-radius: 15px;"
             :cell-style="tableRowStyle"
@@ -58,11 +58,11 @@
           >
             <el-table-column type="index" label="序号" width="90">
             </el-table-column>
-            <el-table-column prop="" label="人员姓名">
+            <el-table-column prop="nickname" label="人员姓名">
             </el-table-column>
             <el-table-column prop="" label="性别"> </el-table-column>
             <el-table-column prop="" label="出生年月"> </el-table-column>
-            <el-table-column prop="" label="身份证号"></el-table-column>
+            <el-table-column prop="idcard" label="身份证号"></el-table-column>
             <el-table-column prop="" label="所属单位"> </el-table-column>
             <el-table-column prop="" label="职位"> </el-table-column>
             <el-table-column prop="" label="日期"> </el-table-column>
@@ -92,7 +92,7 @@ import axios from 'axios'
 export default {
   data () {
     return {
-      appList: {
+      peopleList: {
       },
       appLoading: false,
       appTotal: 0
@@ -125,14 +125,18 @@ export default {
     async getContact () {
       const accessToken = window.localStorage.getItem('access_token')
       const Token = window.localStorage.getItem('Token')
-      await axios.get('/auth/supervise/device/index', {
+      await axios.get('/auth/system/user/index', {
+        params: {
+          page: 1,
+          pageSize: 20
+        },
         headers: {
           Authorization: `Bearer ${Token}`,
           'x-api-header': 'yuanxibing',
           'x-access-token': accessToken
         }
       }).then(res => {
-        this.appList = res.data.data.items
+        this.peopleList = res.data.data.items
         console.log(this.appList)
       })
     },
@@ -153,7 +157,7 @@ export default {
 }
 .footer{
   width: 100%;
-  height: 600px;
+  height: 100%;
   background: #fff;
   margin-top: 20px;
   border-radius: 15px;

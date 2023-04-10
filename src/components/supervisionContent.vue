@@ -108,8 +108,9 @@ export default {
     async getContentList () {
       const accessToken = window.localStorage.getItem('access_token')
       const Token = window.localStorage.getItem('Token')
-      await axios.get('/auth/supervise/task/index', {
+      await axios.get('/auth/supervise/task/taskStatistics', {
         params: {
+          date: 'year',
           page: 1,
           pageSize: 20
         },
@@ -119,7 +120,7 @@ export default {
           'x-access-token': accessToken
         }
       }).then(res => {
-        this.conList = res.data.data.items
+        this.conList = res.data.data.quetionTypeData
         console.log(res)
       })
     },

@@ -83,7 +83,33 @@
             <el-table-column prop="devices[0].device_band" label="设备品牌"> </el-table-column>
             <el-table-column prop="devices[0].device_no" label="设备型号"> </el-table-column>
             <el-table-column prop="devices[0].device_code" label="设备唯一标识"> </el-table-column>
-            <el-table-column prop="status" label="状态"> </el-table-column>
+            <el-table-column prop="status" label="状态">
+              <template slot-scope="scope">
+                <el-popover
+                  placement="top"
+                  width="160"
+                  style="position: fixed;z-index: 555"
+                  v-model="scope.row.visible">
+                  <p>确定要{{scope.row.text}}</p>
+                  <div style="text-align: right; margin: 0">
+                    <el-button size="mini" type="text" @click="scope.row.visible = false">取消</el-button>
+                    <el-button type="primary" size="mini" @click="scope.row.visible = false;change(scope.row)">确定</el-button>
+                  </div>
+                </el-popover>
+                <el-switch
+                  slot="reference"
+                  :value="scope.row.status"
+                  active-color="#13ce66"
+                  inactive-color="#ff4949"
+                  :active-value="1"
+                  :inactive-value="0"
+                  active-text="启用"
+                  inactive-text="停用"
+                  @click.native.prevent="changeListType(scope.row)"
+                >
+                </el-switch>
+              </template>
+            </el-table-column>
             <el-table-column prop="created_at" label="领用时间"> </el-table-column>
             <el-table-column prop="" label="操作">
               <el-button type="text">编辑</el-button>
@@ -103,40 +129,46 @@
         </div></div>
     </div>
     <el-dialog
-      title="添加设备"
+      title="添加关联"
       :visible.sync="dialogVisible"
       width="40%"
       :before-close="handleClose">
       <div>
-        设备型号：
-        <el-autocomplete
-          class="inline-input"
+        领用人员姓名：
+        <el-input
+          style="width: 220px"
           v-model="state"
-          :fetch-suggestions="querySearch"
-          placeholder="请输入设备型号"
-          :trigger-on-focus="false"
-          @select="handleSelect"
-        ></el-autocomplete>
-        设备品牌：
-        <el-autocomplete
-          class="inline-input"
+          placeholder="请输入领用人员姓名"
+        ></el-input>
+        <span style="margin-left: 60px">所属单位：</span>
+        <el-input
           v-model="state"
-
-          placeholder="请输入设备品牌"
-          :trigger-on-focus="false"
-
-        ></el-autocomplete>
-        <div style="margin-top: 20px">
-          设备唯一标识：
-          <el-autocomplete
-            class="inline-input"
+          style="width: 220px"
+          placeholder="请输入所属单位"
+        ></el-input>
+        <div style="margin:20px 0 0 2em">
+          设备品牌：
+          <el-input
             v-model="state"
-            :fetch-suggestions="querySearch"
-            placeholder="请输入设备唯一标识"
-            :trigger-on-focus="false"
-            @select="handleSelect"
-          ></el-autocomplete></div>
-        <div style="margin:-30px 0 0 60%"> 状态：
+            style="width: 220px;"
+            placeholder="请输入设备品牌"
+          ></el-input>
+          <span style="margin-left: 60px">设备型号：</span>
+          <el-input
+            v-model="state"
+            style="width: 220px;"
+            placeholder="请输入设备型号"
+          ></el-input>
+        </div>
+        <div  style="margin-top: 20px">
+          设备唯一标识：
+          <el-input
+            v-model="state"
+            style="width: 220px"
+            placeholder="请输入所属单位"
+          ></el-input>
+        </div>
+        <div style="margin:-30px 0 0 29.4em"> 状态：
           <el-switch
             v-model="status"
             active-color="#13ce66"
@@ -172,13 +204,40 @@ export default {
         }
       },
       appLoading: false,
-      appTotal: 0
+      appTotal: 0,
+      accessToken: window.localStorage.getItem('access_token'),
+      Token: window.localStorage.getItem('Token')
     }
   },
   mounted () {
     this.getContact()
   },
   methods: {
+    change (row) {
+      console.log(row)
+      row.status === 1 ? row.status = 0 : row.status = 1
+      axios.put('/auth/supervise/userDevice/update/' + row.id, {
+        user_id: row.id,
+        device_id: row.dept_id,
+        status: row.status
+      }, {
+        headers: {
+          Authorization: `Bearer ${this.Token}`,
+          'x-api-header': 'yuanxibing',
+          'x-access-token': this.accessToken
+        }
+      }).then(res => {
+        console.log(res)
+      })
+    },
+    changeListType (e) {
+      e.visible = true
+      if (e.status === 0) {
+        e.text = '启用吗？'
+      } else {
+        e.text = '禁用吗？'
+      }
+    },
     handleClose (done) {
       this.$confirm('确认关闭？')
         .then(_ => {
