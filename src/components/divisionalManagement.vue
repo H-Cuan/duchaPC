@@ -31,22 +31,23 @@
             border
             style="border-radius: 15px;"
             :cell-style="tableRowStyle"
+            row-key="id"
             :header-cell-style="tableHeaderStyle"
+            default-expand-all
+            :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
             v-loading="appLoading"
             element-loading-text="加载中"
             element-loading-spinner="el-icon-loading"
             element-loading-background="rgba(0, 0, 0, 0.8)"
           >
-            <el-table-column  type="selection" width="90">
-            </el-table-column>
             <el-table-column type="index" label="序号" width="90">
             </el-table-column>
-            <el-table-column prop="id" label="部门名称">
+            <el-table-column prop="name" label="部门名称">
             </el-table-column>
-            <el-table-column prop="name" label="负责人"> </el-table-column>
-            <el-table-column prop="" label="负责人电话"> </el-table-column>
-            <el-table-column prop="" label="排序"> </el-table-column>
-            <el-table-column prop="" label="备注信息"> </el-table-column>
+            <el-table-column prop="leader" label="负责人"> </el-table-column>
+            <el-table-column prop="phone" label="负责人电话"> </el-table-column>
+            <el-table-column prop="sort" label="排序"> </el-table-column>
+            <el-table-column prop="remark" label="备注信息"> </el-table-column>
             <el-table-column prop="created_at" label="创建时间"> </el-table-column>
             <el-table-column prop="" label="操作">
               <el-button type="text">编辑</el-button>
@@ -76,11 +77,7 @@ import axios from 'axios'
 export default {
   data () {
     return {
-      appList: {
-        created_at: '',
-        id: '',
-        name: ''
-      },
+      appList: {},
       appLoading: false,
       appTotal: 0
     }
@@ -113,21 +110,13 @@ export default {
       const accessToken = window.localStorage.getItem('access_token')
       const Token = window.localStorage.getItem('Token')
       await axios.get('/auth/system/dept/index', {
-        params: {
-          page: 1,
-          pageSize: 20,
-          name: '普通',
-          leader: 'normal',
-          status: 0,
-          orderBy: 'name'
-        },
         headers: {
           Authorization: `Bearer ${Token}`,
           'x-api-header': 'yuanxibing',
           'x-access-token': accessToken
         }
       }).then(res => {
-        this.appList = res.data.data.items
+        this.appList = res.data.data
         console.log(res)
       })
     },
